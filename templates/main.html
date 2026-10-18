@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}MHHGA — Make Headhunting Great Again{% endblock %}
+
+{% block content %}
+    <h1>Make HeadHunting Great Again</h1>
+    <p>Главная</p>
+{#    {% if user.is_authenticated %}#}
+{#        <p>Вы авторизованы как {{ user.email|default:user.username }}.</p>#}
+{#        <form method="post" action="{% url 'account_logout' %}">#}
+{#            {% csrf_token %}#}
+{#            <button type="submit">Выйти</button>#}
+{#        </form>#}
+{#    {% else %}#}
+{#        <p>Вы не авторизованы.</p>#}
+{#        <a href="{% url 'account_login' %}">Войти</a>#}
+{#        <a href="{% url 'account_signup' %}">Зарегистрироваться</a>#}
+{#    {% endif %}#}
+{% endblock %}

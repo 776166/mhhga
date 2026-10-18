@@ -47,6 +47,9 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'drf_spectacular',
+
+    'engine',
+    'candidates',
 ]
 
 MIDDLEWARE = [
@@ -62,12 +65,14 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-ROOT_URLCONF = 'mhhga.urls'
+ROOT_URLCONF = 'engine.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / "templates",
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mhhga.wsgi.application'
+WSGI_APPLICATION = 'engine.wsgi.application'
 
 
 # Database

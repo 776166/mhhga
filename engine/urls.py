@@ -26,11 +26,19 @@ from drf_spectacular.views import (
 
 from .api import CurrentUserView
 
+from . import views
 
 urlpatterns = [
+    path("", views.home, name="home"),
+
     path('admin/', admin.site.urls),
 
     path("accounts/", include("allauth.urls")),
+]
+
+urlpatterns += [
+    path("candidates/", include("candidates.urls")),
+    # path("r/<uuid:public_id>/", candidates.views.public_resume, name="public_resume"),
 ]
 
 urlpatterns += [
