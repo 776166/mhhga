@@ -75,11 +75,11 @@ def resume_detail(request, pk):
         .for_owner(request.user)
         .active()
         .select_related("candidate")
+        .select_related("candidate", "about")
         .prefetch_related(
             "education",
             "employment_descriptions__employment",
             "skills",
-            "about",
         ),
         pk=pk,
     )
@@ -116,7 +116,7 @@ def resume_detail(request, pk):
             "education_entries": resume.education.all(),
             "employment_groups": employment_groups,
             "skill_entries": resume.skills.all(),
-            "about_entries": resume.about,
+            "about_entry": resume.about,
         },
     )
 
