@@ -54,11 +54,13 @@ class Resume(models.Model):
         verbose_name="Навыки",
     )
 
-    about = models.ManyToManyField(
+    about = models.ForeignKey(
         "candidates.About",
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name="resumes",
-        verbose_name="О себе",
+        verbose_name="Обо мне",
     )
 
     is_deleted = models.BooleanField(default=False, db_index=True)

@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}{{ title }} — MHHGA{% endblock %}
@@ -18,24 +17,46 @@
         <form method="post">
             {% csrf_token %}
 
-            {% for field in form %}
-                <div class="mb-3">
+{% for field in form %}
+    <div class="mb-3">
+        {% if field.name == "resumes" %}
+            <label class="form-label">
+                {{ field.label }}
+            </label>
+
+            {% for checkbox in field %}
+                <div class="form-check">
+                    {{ checkbox.tag }}
                     <label
-                        for="{{ field.id_for_label }}"
-                        class="form-label"
+                        class="form-check-label"
+                        for="{{ checkbox.id_for_label }}"
                     >
-                        {{ field.label }}
+                        {{ checkbox.choice_label }}
                     </label>
-
-                    {{ field }}
-
-                    {% for error in field.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ error }}
-                        </div>
-                    {% endfor %}
                 </div>
+            {% empty %}
+                <p class="text-body-secondary small">
+                    У кандидата пока нет резюме.
+                </p>
             {% endfor %}
+        {% else %}
+            <label
+                for="{{ field.id_for_label }}"
+                class="form-label"
+            >
+                {{ field.label }}
+            </label>
+
+            {{ field }}
+        {% endif %}
+
+        {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
 
             {% if form.non_field_errors %}
                 <div class="alert alert-danger">
@@ -56,6 +77,42 @@
                 </a>
             </div>
         </form>
+
+        {% if entry_type == "employment" and entry %}
+            <hr class="my-4">
+
+            <h2 class="h5 mb-3">Использование в резюме</h2>
+
+            {% if employment_descriptions %}
+                <div class="list-group">
+                    {% for description in employment_descriptions %}
+                        <div class="list-group-item">
+                            <strong>{{ description.title }}</strong>
+
+                            {% if description.resumes.all %}
+                                <ul class="small text-body-secondary mb-0 mt-2">
+                                    {% for resume in description.resumes.all %}
+                                        <li>
+                                            <a href="{% url 'resumes:detail' resume.pk %}">
+                                                {{ resume.title }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="small text-body-secondary mt-1">
+                                    Пока не используется ни в одном резюме.
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-body-secondary">
+                    Варианты описания ещё не добавлены.
+                </p>
+            {% endif %}
+        {% endif %}
 
     </div>
 </div>

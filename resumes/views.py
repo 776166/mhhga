@@ -74,14 +74,50 @@ def resume_detail(request, pk):
         Resume.objects
         .for_owner(request.user)
         .active()
-        .select_related("candidate"),
+        .select_related("candidate")
+        .prefetch_related(
+            "education",
+            "employment_descriptions__employment",
+            "skills",
+            "about",
+        ),
         pk=pk,
     )
+
+    employment_groups = []
+    groups_by_employment = {}
+
+    descriptions = (
+        resume.employment_descriptions
+        .select_related("employment")
+        .order_by("employment__created_at", "created_at")
+    )
+
+    for description in descriptions:
+        employment = description.employment
+
+        if employment.pk not in groups_by_employment:
+            group = {
+                "employment": employment,
+                "descriptions": [],
+            }
+            groups_by_employment[employment.pk] = group
+            employment_groups.append(group)
+
+        groups_by_employment[employment.pk]["descriptions"].append(
+            description
+        )
 
     return render(
         request,
         "resumes/resume_detail.html",
-        {"resume": resume},
+        {
+            "resume": resume,
+            "education_entries": resume.education.all(),
+            "employment_groups": employment_groups,
+            "skill_entries": resume.skills.all(),
+            "about_entries": resume.about,
+        },
     )
 
 

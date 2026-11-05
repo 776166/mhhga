@@ -1,9 +1,11 @@
-
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
 from django.core.paginator import Paginator
+from django.db.models import Prefetch
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from resumes.models import Resume
 
 from .forms import (
     AboutForm,
@@ -38,6 +40,11 @@ def get_entry_config(entry_type):
         raise Http404
 
     return config
+
+
+def save_resume_selection(entry, form):
+    if "resumes" in form.fields:
+        entry.resumes.set(form.cleaned_data["resumes"])
 
 
 @login_required
@@ -143,16 +150,18 @@ def entry_create(request, candidate_id, entry_type):
     related_name, form_class, title = get_entry_config(entry_type)
 
     if request.method == "POST":
-        form = form_class(request.POST)
+        form = form_class(request.POST, candidate=candidate)
 
         if form.is_valid():
             entry = form.save(commit=False)
             entry.candidate = candidate
             entry.save()
 
+            save_resume_selection(entry, form)
+
             return redirect("candidates:detail", pk=candidate.pk)
     else:
-        form = form_class()
+        form = form_class(candidate=candidate)
 
     return render(
         request,
@@ -161,6 +170,7 @@ def entry_create(request, candidate_id, entry_type):
             "form": form,
             "candidate": candidate,
             "title": f"Добавить: {title.lower()}",
+            "entry_type": entry_type,
         },
     )
 
@@ -176,23 +186,46 @@ def entry_update(request, candidate_id, entry_type, pk):
     )
 
     if request.method == "POST":
-        form = form_class(request.POST, instance=entry)
+        form = form_class(
+            request.POST,
+            instance=entry,
+            candidate=candidate,
+        )
 
         if form.is_valid():
-            form.save()
+            entry = form.save()
+            save_resume_selection(entry, form)
+
             return redirect("candidates:detail", pk=candidate.pk)
     else:
-        form = form_class(instance=entry)
+        form = form_class(instance=entry, candidate=candidate)
+
+    context = {
+        "form": form,
+        "candidate": candidate,
+        "title": f"Редактировать: {title.lower()}",
+        "entry": entry,
+        "entry_type": entry_type,
+    }
+
+    if entry_type == "employment":
+        context["employment_descriptions"] = (
+            entry.descriptions.prefetch_related(
+                Prefetch(
+                    "resumes",
+                    queryset=(
+                        Resume.objects
+                        .for_owner(request.user)
+                        .active()
+                    ),
+                )
+            )
+        )
 
     return render(
         request,
         "candidates/candidate_enty_form.html",
-        {
-            "form": form,
-            "candidate": candidate,
-            "title": f"Редактировать: {title.lower()}",
-            "entry": entry,
-        },
+        context,
     )
 
 
@@ -224,16 +257,21 @@ def employment_description_create(
     )
 
     if request.method == "POST":
-        form = EmploymentDescriptionForm(request.POST)
+        form = EmploymentDescriptionForm(
+            request.POST,
+            candidate=candidate,
+        )
 
         if form.is_valid():
             description = form.save(commit=False)
             description.employment = employment
             description.save()
 
+            save_resume_selection(description, form)
+
             return redirect("candidates:detail", pk=candidate.pk)
     else:
-        form = EmploymentDescriptionForm()
+        form = EmploymentDescriptionForm(candidate=candidate)
 
     return render(
         request,
@@ -243,6 +281,7 @@ def employment_description_create(
             "candidate": candidate,
             "title": "Добавить вариант описания",
             "parent": employment,
+            "entry_type": "employment_description",
         },
     )
 
@@ -268,13 +307,19 @@ def employment_description_update(
         form = EmploymentDescriptionForm(
             request.POST,
             instance=description,
+            candidate=candidate,
         )
 
         if form.is_valid():
-            form.save()
+            description = form.save()
+            save_resume_selection(description, form)
+
             return redirect("candidates:detail", pk=candidate.pk)
     else:
-        form = EmploymentDescriptionForm(instance=description)
+        form = EmploymentDescriptionForm(
+            instance=description,
+            candidate=candidate,
+        )
 
     return render(
         request,
@@ -285,6 +330,7 @@ def employment_description_update(
             "title": "Редактировать вариант описания",
             "parent": employment,
             "entry": description,
+            "entry_type": "employment_description",
         },
     )
 
