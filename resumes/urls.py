@@ -5,8 +5,8 @@ from .views import (
     resume_create,
     resume_detail,
     resume_update,
+    resume_delete,
 )
-
 
 app_name = "resumes"
 
@@ -20,4 +20,5 @@ urlpatterns = [
     ),
     path("<uuid:pk>/", resume_detail, name="detail"),
     path("<uuid:pk>/edit/", resume_update, name="update"),
+    path("<uuid:pk>/delete/", resume_delete, name="delete"),
 ]

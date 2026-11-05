@@ -20,6 +20,16 @@
         >
             Редактировать
         </a>
+        <form
+            method="post"
+            action="{% url 'resumes:delete' pk=resume.pk %}"
+            onsubmit="return confirm('Удалить резюме?');"
+        >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">
+                Удалить
+            </button>
+        </form>
     </div>
 
     <div class="card">

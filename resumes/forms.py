@@ -12,9 +12,8 @@ class ResumeForm(forms.ModelForm):
     def __init__(self, *args, owner, candidate=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["candidate"].queryset = Candidate.objects.filter(
-            owner=owner,
-            is_deleted=False,
+        self.fields["candidate"].queryset = (
+            Candidate.objects.for_owner(owner).active()
         )
 
         if candidate is not None:

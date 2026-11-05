@@ -75,12 +75,12 @@
         <form
             method="post"
             action="{% url 'candidates:delete' candidate.pk %}"
-            onsubmit="return confirm('Переместить кандидата в корзину?');"
+            onsubmit="return confirm('Удалить кандидата?');"
         >
             {% csrf_token %}
 
             <button type="submit" class="btn btn-outline-danger">
-                В корзину
+                Удалить
             </button>
         </form>
     </div>
@@ -98,7 +98,7 @@
     </a>
 </div>
 
-{% with resumes=candidate.resumes.all %}
+{% with resumes=resumes %}
     {% if resumes %}
         <div class="list-group">
             {% for resume in resumes %}

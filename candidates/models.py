@@ -1,12 +1,16 @@
-from django.db import models
-
-# Create your models here.
-
 import uuid
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
+
+class CandidateQuerySet(models.QuerySet):
+    def for_owner(self, user):
+        return self.filter(owner=user)
+
+    def active(self):
+        return self.filter(is_deleted=False)
 
 
 class Candidate(models.Model):
@@ -27,8 +31,9 @@ class Candidate(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
     name = models.CharField(max_length=255)
+
+    objects = CandidateQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at"]
@@ -46,10 +51,4 @@ class Candidate(models.Model):
         if not self.is_deleted:
             self.is_deleted = True
             self.deleted_at = timezone.now()
-            self.save(update_fields=["is_deleted", "deleted_at"])
-
-    def restore(self):
-        if self.is_deleted:
-            self.is_deleted = False
-            self.deleted_at = None
             self.save(update_fields=["is_deleted", "deleted_at"])

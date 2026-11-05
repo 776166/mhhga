@@ -1,6 +1,18 @@
-from django.db import models
-
 import uuid
+
+from django.db import models
+from django.utils import timezone
+
+
+class ResumeQuerySet(models.QuerySet):
+    def for_owner(self, user):
+        return self.filter(candidate__owner=user)
+
+    def active(self):
+        return self.filter(
+            is_deleted=False,
+            candidate__is_deleted=False,
+        )
 
 
 class Resume(models.Model):
@@ -17,25 +29,16 @@ class Resume(models.Model):
         verbose_name="Кандидат",
     )
 
-    title = models.CharField(
-        "Название",
-        max_length=255,
-    )
+    title = models.CharField("Название", max_length=255)
+    content = models.TextField("Текст резюме", blank=True)
 
-    content = models.TextField(
-        "Текст резюме",
-        blank=True,
-    )
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
-    created_at = models.DateTimeField(
-        "Создано",
-        auto_now_add=True,
-    )
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
 
-    updated_at = models.DateTimeField(
-        "Обновлено",
-        auto_now=True,
-    )
+    objects = ResumeQuerySet.as_manager()
 
     class Meta:
         verbose_name = "резюме"
@@ -45,3 +48,8 @@ class Resume(models.Model):
     def __str__(self):
         return self.title
 
+    def soft_delete(self):
+        if not self.is_deleted:
+            self.is_deleted = True
+            self.deleted_at = timezone.now()
+            self.save(update_fields=["is_deleted", "deleted_at"])

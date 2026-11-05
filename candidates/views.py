@@ -1,11 +1,8 @@
-from django.shortcuts import render
 
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator
-
-from engine.views import not_implemented
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import CandidateForm
 from .models import Candidate
@@ -13,11 +10,7 @@ from .models import Candidate
 
 @login_required
 def candidate_list(request):
-    queryset = Candidate.objects.filter(
-        owner=request.user,
-        is_deleted=False,
-    )
-
+    queryset = Candidate.objects.for_owner(request.user).active()
     candidates = Paginator(queryset, 25).get_page(
         request.GET.get("page")
     )
@@ -38,7 +31,6 @@ def candidate_create(request):
             candidate = form.save(commit=False)
             candidate.owner = request.user
             candidate.save()
-
             return redirect("candidates:list")
     else:
         form = CandidateForm()
@@ -53,26 +45,25 @@ def candidate_create(request):
 @login_required
 def candidate_detail(request, pk):
     candidate = get_object_or_404(
-        Candidate,
+        Candidate.objects.for_owner(request.user).active(),
         pk=pk,
-        owner=request.user,
-        is_deleted=False,
     )
 
     return render(
         request,
         "candidates/candidate_detail.html",
-        {"candidate": candidate},
+        {
+            "candidate": candidate,
+            "resumes": candidate.resumes.active(),
+        },
     )
 
 
 @login_required
 def candidate_update(request, pk):
     candidate = get_object_or_404(
-        Candidate,
+        Candidate.objects.for_owner(request.user).active(),
         pk=pk,
-        owner=request.user,
-        is_deleted=False,
     )
 
     if request.method == "POST":
@@ -80,10 +71,7 @@ def candidate_update(request, pk):
 
         if form.is_valid():
             form.save()
-            return redirect(
-                "candidates:detail",
-                pk=candidate.pk,
-            )
+            return redirect("candidates:detail", pk=candidate.pk)
     else:
         form = CandidateForm(instance=candidate)
 
@@ -101,10 +89,8 @@ def candidate_update(request, pk):
 @require_POST
 def candidate_toggle_visibility(request, pk):
     candidate = get_object_or_404(
-        Candidate,
+        Candidate.objects.for_owner(request.user).active(),
         pk=pk,
-        owner=request.user,
-        is_deleted=False,
     )
 
     candidate.is_visible = not candidate.is_visible
@@ -117,45 +103,9 @@ def candidate_toggle_visibility(request, pk):
 @require_POST
 def candidate_delete(request, pk):
     candidate = get_object_or_404(
-        Candidate,
+        Candidate.objects.for_owner(request.user).active(),
         pk=pk,
-        owner=request.user,
-        is_deleted=False,
     )
 
     candidate.soft_delete()
-
     return redirect("candidates:list")
-
-
-@login_required
-def candidate_trash(request):
-    queryset = Candidate.objects.filter(
-        owner=request.user,
-        is_deleted=True,
-    )
-
-    candidates = Paginator(queryset, 25).get_page(
-        request.GET.get("page")
-    )
-
-    return render(
-        request,
-        "candidates/candidate_trash.html",
-        {"candidates": candidates},
-    )
-
-
-@login_required
-@require_POST
-def candidate_restore(request, pk):
-    candidate = get_object_or_404(
-        Candidate,
-        pk=pk,
-        owner=request.user,
-        is_deleted=True,
-    )
-
-    candidate.restore()
-
-    return redirect("candidates:trash")
