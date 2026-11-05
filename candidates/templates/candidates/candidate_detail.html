@@ -1,117 +1,324 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-2">{{ candidate.name }}</h1>
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-            <h1 class="h3 mb-2">{{ candidate.name }}</h1>
-
-            {% if candidate.is_visible %}
-                <span class="badge text-bg-success">Видимый</span>
-            {% else %}
-                <span class="badge text-bg-secondary">Скрытый</span>
-            {% endif %}
-        </div>
-
-        <a
-            href="{% url 'candidates:list' %}"
-            class="btn btn-outline-secondary"
-        >
-            К списку
-        </a>
-
-    </div>
-    <div class="mb-4">
-        <a
-            href="{% url 'resumes:create_for_candidate' candidate_id=candidate.pk %}"
-            class="btn btn-primary"
-        >
-            Создать резюме
-        </a>
-    </div>
-    <div class="card mb-4">
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-3">Имя</dt>
-                <dd class="col-sm-9">{{ candidate.name }}</dd>
-
-                <dt class="col-sm-3">Создан</dt>
-                <dd class="col-sm-9">
-                    {{ candidate.created_at|date:"d.m.Y H:i" }}
-                </dd>
-
-                <dt class="col-sm-3">UUID</dt>
-                <dd class="col-sm-9">
-                    <code>{{ candidate.pk }}</code>
-                </dd>
-            </dl>
-        </div>
+        {% if candidate.is_visible %}
+            <span class="badge text-bg-success">Видимый</span>
+        {% else %}
+            <span class="badge text-bg-secondary">Скрытый</span>
+        {% endif %}
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
-        <a
-            href="{% url 'candidates:update' candidate.pk %}"
-            class="btn btn-primary"
-        >
-            Редактировать
-        </a>
-
-        <form
-            method="post"
-            action="{% url 'candidates:toggle_visibility' candidate.pk %}"
-        >
-            {% csrf_token %}
-
-            <button type="submit" class="btn btn-outline-secondary">
-                {% if candidate.is_visible %}
-                    Скрыть
-                {% else %}
-                    Сделать видимым
-                {% endif %}
-            </button>
-        </form>
-
-        <form
-            method="post"
-            action="{% url 'candidates:delete' candidate.pk %}"
-            onsubmit="return confirm('Удалить кандидата?');"
-        >
-            {% csrf_token %}
-
-            <button type="submit" class="btn btn-outline-danger">
-                Удалить
-            </button>
-        </form>
-    </div>
-
-</div>
-    <hr class="my-4">
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Резюме</h2>
-    <a
-        href="{% url 'resumes:create_for_candidate' candidate_id=candidate.pk %}"
-        class="btn btn-outline-primary btn-sm"
-    >
-        Добавить
+    <a href="{% url 'candidates:list' %}" class="btn btn-outline-secondary">
+        К списку
     </a>
 </div>
 
-{% with resumes=resumes %}
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Имя</dt>
+            <dd class="col-sm-9">{{ candidate.name }}</dd>
+
+            <dt class="col-sm-3">Создан</dt>
+            <dd class="col-sm-9">
+                {{ candidate.created_at|date:"d.m.Y H:i" }}
+            </dd>
+
+            <dt class="col-sm-3">UUID</dt>
+            <dd class="col-sm-9"><code>{{ candidate.pk }}</code></dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-5">
+    <a
+        href="{% url 'candidates:update' candidate.pk %}"
+        class="btn btn-primary"
+    >
+        Редактировать кандидата
+    </a>
+
+    <form
+        method="post"
+        action="{% url 'candidates:toggle_visibility' candidate.pk %}"
+    >
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary">
+            {% if candidate.is_visible %}Скрыть{% else %}Сделать видимым{% endif %}
+        </button>
+    </form>
+
+    <form
+        method="post"
+        action="{% url 'candidates:delete' candidate.pk %}"
+        onsubmit="return confirm('Удалить кандидата?');"
+    >
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">
+            Удалить кандидата
+        </button>
+    </form>
+</div>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Образование</h2>
+        <a
+            href="{% url 'candidates:entry_create' candidate.pk 'education' %}"
+            class="btn btn-sm btn-outline-primary"
+        >
+            Добавить
+        </a>
+    </div>
+
+    {% if education_entries %}
+        <div class="list-group">
+            {% for entry in education_entries %}
+                <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                    <strong>{{ entry.title }}</strong>
+
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a
+                            href="{% url 'candidates:entry_update' candidate.pk 'education' entry.pk %}"
+                            class="btn btn-sm btn-outline-secondary"
+                        >
+                            Изменить
+                        </a>
+                        <form
+                            method="post"
+                            action="{% url 'candidates:entry_delete' candidate.pk 'education' entry.pk %}"
+                            onsubmit="return confirm('Удалить запись об образовании?');"
+                        >
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">Образование пока не добавлено.</p>
+    {% endif %}
+</section>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Опыт работы</h2>
+        <a
+            href="{% url 'candidates:entry_create' candidate.pk 'employment' %}"
+            class="btn btn-sm btn-outline-primary"
+        >
+            Добавить место работы
+        </a>
+    </div>
+
+    {% if employment_entries %}
+        <div class="list-group">
+            {% for employment in employment_entries %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                        <strong>{{ employment.title }}</strong>
+
+                        <div class="d-flex gap-2 flex-shrink-0">
+                            <a
+                                href="{% url 'candidates:entry_update' candidate.pk 'employment' employment.pk %}"
+                                class="btn btn-sm btn-outline-secondary"
+                            >
+                                Изменить
+                            </a>
+                            <form
+                                method="post"
+                                action="{% url 'candidates:entry_delete' candidate.pk 'employment' employment.pk %}"
+                                onsubmit="return confirm('Удалить место работы и все его варианты описания?');"
+                            >
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger" type="submit">
+                                    Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="ms-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-body-secondary small">Варианты описания</span>
+                            <a
+                                href="{% url 'candidates:employment_description_create' candidate.pk employment.pk %}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                Добавить вариант
+                            </a>
+                        </div>
+
+                        {% if employment.descriptions.all %}
+                            <div class="list-group list-group-flush">
+                                {% for description in employment.descriptions.all %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center gap-3 px-0">
+                                        <span>{{ description.title }}</span>
+
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <a
+                                                href="{% url 'candidates:employment_description_update' candidate.pk employment.pk description.pk %}"
+                                                class="btn btn-sm btn-outline-secondary"
+                                            >
+                                                Изменить
+                                            </a>
+                                            <form
+                                                method="post"
+                                                action="{% url 'candidates:employment_description_delete' candidate.pk employment.pk description.pk %}"
+                                                onsubmit="return confirm('Удалить вариант описания?');"
+                                            >
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                    Удалить
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-body-secondary small mb-0">
+                                        Варианты описания ещё не добавлены.
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-body-secondary small mb-0">
+                                Варианты описания ещё не добавлены.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">Опыт работы пока не добавлен.</p>
+    {% endif %}
+</section>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Навыки</h2>
+        <a
+            href="{% url 'candidates:entry_create' candidate.pk 'skill' %}"
+            class="btn btn-sm btn-outline-primary"
+        >
+            Добавить
+        </a>
+    </div>
+
+    {% if skill_entries %}
+        <div class="list-group">
+            {% for entry in skill_entries %}
+                <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                    <div>
+                        <strong>{{ entry.title }}</strong>
+                        <span class="text-body-secondary ms-2">
+                            {{ entry.get_level_display }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a
+                            href="{% url 'candidates:entry_update' candidate.pk 'skill' entry.pk %}"
+                            class="btn btn-sm btn-outline-secondary"
+                        >
+                            Изменить
+                        </a>
+                        <form
+                            method="post"
+                            action="{% url 'candidates:entry_delete' candidate.pk 'skill' entry.pk %}"
+                            onsubmit="return confirm('Удалить навык?');"
+                        >
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">Навыки пока не добавлены.</p>
+    {% endif %}
+</section>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">О себе</h2>
+        <a
+            href="{% url 'candidates:entry_create' candidate.pk 'about' %}"
+            class="btn btn-sm btn-outline-primary"
+        >
+            Добавить
+        </a>
+    </div>
+
+    {% if about_entries %}
+        <div class="list-group">
+            {% for entry in about_entries %}
+                <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                    <strong>{{ entry.title }}</strong>
+
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a
+                            href="{% url 'candidates:entry_update' candidate.pk 'about' entry.pk %}"
+                            class="btn btn-sm btn-outline-secondary"
+                        >
+                            Изменить
+                        </a>
+                        <form
+                            method="post"
+                            action="{% url 'candidates:entry_delete' candidate.pk 'about' entry.pk %}"
+                            onsubmit="return confirm('Удалить запись?');"
+                        >
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">Записей пока нет.</p>
+    {% endif %}
+</section>
+
+<hr class="my-4">
+
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Резюме</h2>
+        <a
+            href="{% url 'resumes:create_for_candidate' candidate_id=candidate.pk %}"
+            class="btn btn-outline-primary btn-sm"
+        >
+            Добавить
+        </a>
+    </div>
+
     {% if resumes %}
         <div class="list-group">
             {% for resume in resumes %}
                 <div class="list-group-item">
                     <strong>{{ resume.title }}</strong>
-                    <div class="text-muted small">
+                    <div class="text-body-secondary small">
                         Обновлено: {{ resume.updated_at|date:"d.m.Y H:i" }}
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <p class="text-muted">У этого кандидата пока нет резюме.</p>
+        <p class="text-body-secondary">У этого кандидата пока нет резюме.</p>
     {% endif %}
-{% endwith %}
+</section>
 {% endblock %}
