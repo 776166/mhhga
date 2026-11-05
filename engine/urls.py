@@ -38,6 +38,7 @@ urlpatterns = [
 
 urlpatterns += [
     path("candidates/", include("candidates.urls")),
+    path("resumes/", include("resumes.urls")),
     # path("r/<uuid:public_id>/", candidates.views.public_resume, name="public_resume"),
 ]
 

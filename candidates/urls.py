@@ -5,10 +5,10 @@ from .views import (
     candidate_create,
     candidate_detail,
     candidate_update,
-    resume_list,
-    resume_create,
-    resume_detail,
-    resume_update,
+    candidate_toggle_visibility,
+    candidate_delete,
+    candidate_trash,
+    candidate_restore,
 )
 
 app_name = "candidates"
@@ -24,33 +24,19 @@ urlpatterns = [
         candidate_create,
         name="create",
     ),
+    path("<uuid:pk>/", candidate_detail, name="detail"),
+    path("<uuid:pk>/edit/", candidate_update, name="update"),
     path(
-        "<int:candidate_id>/",
-        candidate_detail,
-        name="detail"),
-    path(
-        "<int:candidate_id>/edit/",
-        candidate_update,
-        name="update",
+        "<uuid:pk>/visibility/",
+        candidate_toggle_visibility,
+        name="toggle_visibility",
     ),
+    path("<uuid:pk>/delete/", candidate_delete, name="delete"),
+
+    path("trash/", candidate_trash, name="trash"),
     path(
-        "<int:candidate_id>/resumes/",
-        resume_list,
-        name="resume_list",
-    ),
-    path(
-        "<int:candidate_id>/resumes/new/",
-        resume_create,
-        name="resume_create",
-    ),
-    path(
-        "<int:candidate_id>/resumes/<int:resume_id>/",
-        resume_detail,
-        name="resume_detail",
-    ),
-    path(
-        "<int:candidate_id>/resumes/<int:resume_id>/edit/",
-        resume_update,
-        name="resume_update",
+        "<uuid:pk>/restore/",
+        candidate_restore,
+        name="restore",
     ),
 ]

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-2">{{ candidate.name }}</h1>
+
+            {% if candidate.is_visible %}
+                <span class="badge text-bg-success">Видимый</span>
+            {% else %}
+                <span class="badge text-bg-secondary">Скрытый</span>
+            {% endif %}
+        </div>
+
+        <a
+            href="{% url 'candidates:list' %}"
+            class="btn btn-outline-secondary"
+        >
+            К списку
+        </a>
+
+    </div>
+    <div class="mb-4">
+        <a
+            href="{% url 'resumes:create_for_candidate' candidate_id=candidate.pk %}"
+            class="btn btn-primary"
+        >
+            Создать резюме
+        </a>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Имя</dt>
+                <dd class="col-sm-9">{{ candidate.name }}</dd>
+
+                <dt class="col-sm-3">Создан</dt>
+                <dd class="col-sm-9">
+                    {{ candidate.created_at|date:"d.m.Y H:i" }}
+                </dd>
+
+                <dt class="col-sm-3">UUID</dt>
+                <dd class="col-sm-9">
+                    <code>{{ candidate.pk }}</code>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a
+            href="{% url 'candidates:update' candidate.pk %}"
+            class="btn btn-primary"
+        >
+            Редактировать
+        </a>
+
+        <form
+            method="post"
+            action="{% url 'candidates:toggle_visibility' candidate.pk %}"
+        >
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-outline-secondary">
+                {% if candidate.is_visible %}
+                    Скрыть
+                {% else %}
+                    Сделать видимым
+                {% endif %}
+            </button>
+        </form>
+
+        <form
+            method="post"
+            action="{% url 'candidates:delete' candidate.pk %}"
+            onsubmit="return confirm('Переместить кандидата в корзину?');"
+        >
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-outline-danger">
+                В корзину
+            </button>
+        </form>
+    </div>
+
+</div>
+    <hr class="my-4">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Резюме</h2>
+    <a
+        href="{% url 'resumes:create_for_candidate' candidate_id=candidate.pk %}"
+        class="btn btn-outline-primary btn-sm"
+    >
+        Добавить
+    </a>
+</div>
+
+{% with resumes=candidate.resumes.all %}
+    {% if resumes %}
+        <div class="list-group">
+            {% for resume in resumes %}
+                <div class="list-group-item">
+                    <strong>{{ resume.title }}</strong>
+                    <div class="text-muted small">
+                        Обновлено: {{ resume.updated_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">У этого кандидата пока нет резюме.</p>
+    {% endif %}
+{% endwith %}
+{% endblock %}

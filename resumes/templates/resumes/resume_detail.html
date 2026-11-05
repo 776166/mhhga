@@ -1,0 +1,41 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1>{{ resume.title }}</h1>
+            <p class="text-muted mb-0">
+                Кандидат:
+                <a href="{% url 'candidates:detail' pk=resume.candidate.pk %}">
+                    {{ resume.candidate.name }}
+                </a>
+            </p>
+        </div>
+
+        <a
+            href="{% url 'resumes:update' pk=resume.pk %}"
+            class="btn btn-primary"
+        >
+            Редактировать
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if resume.content %}
+                {{ resume.content|linebreaks }}
+            {% else %}
+                <p class="text-muted mb-0">Текст резюме пока не заполнен.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{% url 'resumes:list' %}" class="btn btn-outline-secondary">
+            К списку резюме
+        </a>
+    </div>
+</div>
+{% endblock %}
