@@ -1,3 +1,4 @@
+
 import uuid
 
 from django.db import models
@@ -31,6 +32,34 @@ class Resume(models.Model):
 
     title = models.CharField("Название", max_length=255)
     content = models.TextField("Текст резюме", blank=True)
+
+    education = models.ManyToManyField(
+        "candidates.Education",
+        blank=True,
+        related_name="resumes",
+        verbose_name="Образование",
+    )
+
+    employment_descriptions = models.ManyToManyField(
+        "candidates.EmploymentDescription",
+        blank=True,
+        related_name="resumes",
+        verbose_name="Опыт работы",
+    )
+
+    skills = models.ManyToManyField(
+        "candidates.Skill",
+        blank=True,
+        related_name="resumes",
+        verbose_name="Навыки",
+    )
+
+    about = models.ManyToManyField(
+        "candidates.About",
+        blank=True,
+        related_name="resumes",
+        verbose_name="О себе",
+    )
 
     is_deleted = models.BooleanField(default=False, db_index=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
